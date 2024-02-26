@@ -1,0 +1,61 @@
+---
+- hosts: all
+  become: true
+  vars:
+    UserA: Ubuntu_MN
+    UserB: CentOS_MN
+
+  tasks:
+
+  - name: Message of the Day
+    template:
+      src: msg.j2
+      dest: /etc/motd
+    tags:
+      - motd_config
+
+  - name: UserA - Ubuntu
+    ansible.builtin.user:
+      name: "{{ UserA }}"
+      state: present
+    when: ansible_distribution == "Ubuntu"
+
+  - name: UserB - CentOS
+    ansible.builtin.user:
+      name: "{{ UserB }}"
+      state: present
+    when: ansible_distribution == "CentOS"
+
+  - name: Latest python3 and pip3 installation for Ubuntu
+    apt:
+      name:
+        - python3
+        - python3-pip
+      state: latest
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Latest python3 and pip3 installation for CentOS
+    dnf:
+      name:
+        - python3
+        - python3-pip
+      state: latest
+    when: ansible_distribution == "CentOS"
+
+  - name: Java open-jdk Installation for Ubuntu
+    apt:
+      name: default-jdk
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Java open-jdk Installation for CentOS
+    dnf:
+      name: java-11-openjdk-devel
+    when: ansible_distribution == "CentOS"
+
+  - name: Use python3 as default python for CentOS
+    ansible.builtin.command: alias python3=/usr/bin/python3
+    when: ansible_distribution == "CentOS"
+
+  - name: Use pip3 as default pip for CentOS
+    ansible.builtin.command: alias pip3=/usr/bin/pip
+    when: ansible_distribution == "CentOS"
